@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Agendamento</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="container">
+
+  <h2>Fazer Agendamento</h2>
+
+  <input id="nome" placeholder="Nome">
+  <input type="date" id="data">
+  <input type="time" id="hora">
+  <button onclick="agendar()">Agendar</button>
+
+  <h2>Agendamentos</h2>
+  <ul id="lista"></ul>
+
+</div>
+
+<script>
+async function agendar() {
+  const nome = document.getElementById("nome").value;
+  const data = document.getElementById("data").value;
+  const hora = document.getElementById("hora").value;
+
+  if (!nome || !data || !hora) {
+    alert("Preencha todos os campos!");
+    return;
+  }
+
+  const res = await fetch("http://localhost:3000/agendar", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ nome, data, hora })
+  });
+
+  const dataRes = await res.json();
+
+  if (!res.ok) {
+    alert(dataRes.error);
+    return;
+  }
+
+  listar();
+}
+
+async function deletar(id) {
+  await fetch(`http://localhost:3000/agendamentos/${id}`, {
+    method: "DELETE"
+  });
+
+  listar();
+}
+
+async function listar() {
+  const res = await fetch("http://localhost:3000/agendamentos");
+  const dados = await res.json();
+
+  const lista = document.getElementById("lista");
+  lista.innerHTML = "";
+
+  dados.forEach(a => {
+    lista.innerHTML += `
+      <li>
+        <span>
+          <strong>${a.nome}</strong><br>
+          <span class="data">${a.data} às ${a.hora}</span>
+        </span>
+        <button onclick="deletar(${a.id})" class="delete-btn">X</button>
+      </li>
+    `;
+  });
+}
+
+listar();
+</script>
+
+</body>
+</html>
